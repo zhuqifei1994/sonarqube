@@ -17,44 +17,58 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-var path = require('path');
-var fs = require('fs');
+'use strict';
+
+const path = require('path');
+const fs = require('fs');
+const url = require('url');
 
 // Make sure any symlinks in the project folder are resolved:
 // https://github.com/facebookincubator/create-react-app/issues/637
-var appDirectory = fs.realpathSync(process.cwd());
-function resolveApp(relativePath) {
-  return path.resolve(appDirectory, relativePath);
+const appDirectory = fs.realpathSync(process.cwd());
+const resolveApp = relativePath => path.resolve(appDirectory, relativePath);
+
+const envPublicUrl = process.env.PUBLIC_URL;
+
+function ensureSlash(path, needsSlash) {
+  const hasSlash = path.endsWith('/');
+  if (hasSlash && !needsSlash) {
+    return path.substr(path, path.length - 1);
+  } else if (!hasSlash && needsSlash) {
+    return `${path}/`;
+  } else {
+    return path;
+  }
 }
 
-// We support resolving modules according to `NODE_PATH`.
-// This lets you use absolute paths in imports inside large monorepos:
-// https://github.com/facebookincubator/create-react-app/issues/253.
+const getPublicUrl = appPackageJson => envPublicUrl || require(appPackageJson).homepage;
 
-// It works similar to `NODE_PATH` in Node itself:
-// https://nodejs.org/api/modules.html#modules_loading_from_the_global_folders
-
-// We will export `nodePaths` as an array of absolute paths.
-// It will then be used by Webpack configs.
-// Jest doesn’t need this because it already handles `NODE_PATH` out of the box.
-
-var nodePaths = (process.env.NODE_PATH || '')
-    .split(process.platform === 'win32' ? ';' : ':')
-    .filter(Boolean)
-    .map(resolveApp);
+// We use `PUBLIC_URL` environment variable or "homepage" field to infer
+// "public path" at which the app is served.
+// Webpack needs to know it to put the right <script> hrefs into HTML even in
+// single-page apps that may serve index.html for nested URLs like /todos/42.
+// We can't use a relative path in HTML because we don't want to load something
+// like /todos/42/static/js/bundle.7289d.js. We have to know the root.
+function getServedPath(appPackageJson) {
+  const publicUrl = getPublicUrl(appPackageJson);
+  const servedUrl = envPublicUrl || (publicUrl ? url.parse(publicUrl).pathname : '/');
+  return ensureSlash(servedUrl, true);
+}
 
 // config after eject: we're in ./config/
 module.exports = {
+  dotenv: resolveApp('.env'),
   appBuild: resolveApp('src/main/webapp'),
+  appBuildJs: resolveApp('src/main/webapp/js'),
+  appBuildCss: resolveApp('src/main/webapp/css'),
   appPublic: resolveApp('public'),
   appHtml: resolveApp('public/index.html'),
+  appIndexJs: resolveApp('src/main/js/app/index.js'),
   appPackageJson: resolveApp('package.json'),
-  appSrc: resolveApp('src/main/js'),
-  jsBuild: resolveApp('src/main/webapp/js'),
-  cssBuild: resolveApp('src/main/webapp/css'),
-  htmlBuild: resolveApp('src/main/webapp/index.html'),
+  appSrc: resolveApp('src'),
+  yarnLockFile: resolveApp('yarn.lock'),
+  testsSetup: resolveApp('src/setupTests.js'),
   appNodeModules: resolveApp('node_modules'),
-  ownNodeModules: resolveApp('node_modules'),
-  nodePaths: nodePaths
+  publicUrl: getPublicUrl(resolveApp('package.json')),
+  servedPath: getServedPath(resolveApp('package.json'))
 };
-

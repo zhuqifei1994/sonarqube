@@ -1,7 +1,7 @@
 /*
  * SonarQube
- * Copyright (C) 2009-2016 SonarSource SA
- * mailto:contact AT sonarsource DOT com
+ * Copyright (C) 2009-2017 SonarSource SA
+ * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,12 +17,17 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
+'use strict';
+
+// This is a custom Jest transformer turning style imports into empty objects.
+// http://facebook.github.io/jest/docs/tutorial-webpack.html
+
 module.exports = {
-  browsers: [
-    'last 3 Chrome versions',
-    'last 3 Firefox versions',
-    'last 3 Safari versions',
-    'last 3 Edge versions',
-    'IE 11'
-  ]
+  process() {
+    return 'module.exports = {};';
+  },
+  getCacheKey() {
+    // The output is always the same.
+    return 'cssTransform';
+  }
 };

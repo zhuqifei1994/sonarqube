@@ -7441,4 +7441,4 @@ $.widget( "ui.tabs", {
 	}
 });
 
-})( jQuery );
+})( window.jQuery );

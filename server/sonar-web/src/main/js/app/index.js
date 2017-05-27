@@ -25,6 +25,11 @@ import { installGlobal } from '../helpers/l10n';
 import '../helpers/isolatedScroll';
 import './styles/index';
 
+require('script-loader!../libs/third-party/jquery-ui.js');
+require('script-loader!../libs/third-party/select2.js');
+require('script-loader!../libs/third-party/bootstrap/tooltip.js');
+require('script-loader!../libs/third-party/bootstrap/dropdown.js');
+
 startAjaxMonitoring();
 installGlobal();
 startReactApp();

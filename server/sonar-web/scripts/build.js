@@ -1,105 +1,113 @@
-/*
- * SonarQube
- * Copyright (C) 2009-2016 SonarSource SA
- * mailto:contact AT sonarsource DOT com
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- */
+'use strict';
+
+/* eslint-disable no-console */
+
+// Do this as the first thing so that any code reading it knows the right env.
 process.env.NODE_ENV = 'production';
 
-var chalk = require('chalk');
-var fs = require('fs-extra');
-var path = require('path');
-var rimrafSync = require('rimraf').sync;
-var webpack = require('webpack');
-var paths = require('../config/paths');
-var formatSize = require('./utils/formatSize');
+// Makes the script crash on unhandled rejections instead of silently
+// ignoring them. In the future, promise rejections that are not handled will
+// terminate the Node.js process with a non-zero exit code.
+process.on('unhandledRejection', err => {
+  throw err;
+});
 
-var isFastBuild = process.argv.some(arg => arg.indexOf('--fast') > -1);
+// Ensure environment variables are read.
+require('../config/env');
 
-var config = isFastBuild ?
-    require('../config/webpack/webpack.config.fast') :
-    require('../config/webpack/webpack.config.prod');
+const chalk = require('chalk');
+const fs = require('fs-extra');
+const webpack = require('webpack');
+const checkRequiredFiles = require('react-dev-utils/checkRequiredFiles');
+const formatWebpackMessages = require('react-dev-utils/formatWebpackMessages');
+const FileSizeReporter = require('react-dev-utils/FileSizeReporter');
+const config = require('../config/webpack/webpack.config.prod');
+const paths = require('../config/paths');
 
-function clean () {
-// Remove all content but keep the directory so that
-// if you're in it, you don't end up in Trash
-  console.log(chalk.cyan.bold('Cleaning output directories and files...'));
+const measureFileSizesBeforeBuild = FileSizeReporter.measureFileSizesBeforeBuild;
+const printFileSizesAfterBuild = FileSizeReporter.printFileSizesAfterBuild;
 
-  console.log(paths.jsBuild + '/*');
-  rimrafSync(paths.jsBuild + '/*');
-
-  console.log(paths.cssBuild + '/*');
-  rimrafSync(paths.cssBuild + '/*');
-
-  console.log(paths.htmlBuild);
-  rimrafSync(paths.htmlBuild);
-
-  console.log();
+// Warn and crash if required files are missing
+if (!checkRequiredFiles([paths.appHtml, paths.appIndexJs])) {
+  process.exit(1);
 }
 
-function build () {
-  if (isFastBuild) {
-    console.log(chalk.magenta.bold('Running fast build...'));
-  } else {
-    console.log(chalk.cyan.bold('Creating optimized production build...'));
-  }
-  console.log();
+// First, read the current file sizes in build directory.
+// This lets us display how much they changed later.
+measureFileSizesBeforeBuild(paths.appBuild)
+  .then(previousFileSizes => {
+    // Remove all content but keep the directory so that
+    // if you're in it, you don't end up in Trash
+    fs.emptyDirSync(paths.appBuildJs);
+    fs.emptyDirSync(paths.appBuildCss);
+    // Merge with the public folder
+    copyPublicFolder();
+    // Start the webpack build
+    return build(previousFileSizes);
+  })
+  .then(
+    ({ stats, previousFileSizes, warnings }) => {
+      if (warnings.length) {
+        console.log(chalk.yellow('Compiled with warnings.\n'));
+        console.log(warnings.join('\n\n'));
+        console.log(
+          '\nSearch for the ' +
+            chalk.underline(chalk.yellow('keywords')) +
+            ' to learn more about each warning.'
+        );
+        console.log(
+          'To ignore, add ' + chalk.cyan('// eslint-disable-next-line') + ' to the line before.\n'
+        );
+      } else {
+        console.log(chalk.green('Compiled successfully.\n'));
+      }
 
-  webpack(config, (err, stats) => {
-    if (err) {
-      console.log(chalk.red.bold('Failed to create a production build!'));
-      console.log(chalk.red(err.message || err));
+      console.log('File sizes after gzip:\n');
+      printFileSizesAfterBuild(stats, previousFileSizes);
+      console.log();
+    },
+    err => {
+      console.log(chalk.red('Failed to compile.\n'));
+      console.log((err.message || err) + '\n');
       process.exit(1);
     }
+  );
 
-    if (stats.compilation.errors && stats.compilation.errors.length) {
-      console.log(chalk.red.bold('Failed to create a production build!'));
-      stats.compilation.errors.forEach(err => console.log(chalk.red(err.message || err)));
-      process.exit(1);
-    }
+// Create the production build and print the deployment instructions.
+function build(previousFileSizes) {
+  console.log('Creating an optimized production build...');
 
-    var jsonStats = stats.toJson();
-
-    console.log('Assets:');
-    var assets = jsonStats.assets.slice();
-    assets.sort((a, b) => b.size - a.size);
-    assets.forEach(asset => {
-      var sizeLabel = formatSize(asset.size);
-      var leftPadding = ' '.repeat(Math.max(0, 8 - sizeLabel.length));
-      sizeLabel = leftPadding + sizeLabel;
-      console.log('', chalk.yellow(sizeLabel), asset.name);
+  const compiler = webpack(config);
+  return new Promise((resolve, reject) => {
+    compiler.run((err, stats) => {
+      if (err) {
+        return reject(err);
+      }
+      const messages = formatWebpackMessages(stats.toJson({}, true));
+      if (messages.errors.length) {
+        return reject(new Error(messages.errors.join('\n\n')));
+      }
+      if (process.env.CI && messages.warnings.length) {
+        console.log(
+          chalk.yellow(
+            '\nTreating warnings as errors because process.env.CI = true.\n' +
+              'Most CI servers set it automatically.\n'
+          )
+        );
+        return reject(new Error(messages.warnings.join('\n\n')));
+      }
+      return resolve({
+        stats,
+        previousFileSizes,
+        warnings: messages.warnings
+      });
     });
-    console.log();
-
-    var seconds = jsonStats.time / 1000;
-    console.log('Duration: ' + seconds.toFixed(2) + 's');
-    console.log();
-
-    console.log(chalk.green.bold('Compiled successfully!'));
   });
 }
 
-function copyPublicFolder () {
+function copyPublicFolder() {
   fs.copySync(paths.appPublic, paths.appBuild, {
     dereference: true,
     filter: file => file !== paths.appHtml
   });
 }
-
-
-clean();
-build();
-copyPublicFolder();

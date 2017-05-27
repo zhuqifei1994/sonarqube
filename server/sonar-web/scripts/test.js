@@ -17,22 +17,27 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
+'use strict';
+
 process.env.NODE_ENV = 'test';
 process.env.PUBLIC_URL = '';
 
-// Load environment variables from .env file. Surpress warnings using silent
-// if this file is missing. dotenv will never modify any environment variables
-// that have already been set.
-// https://github.com/motdotla/dotenv
-require('dotenv').config({ silent: true });
+// Makes the script crash on unhandled rejections instead of silently
+// ignoring them. In the future, promise rejections that are not handled will
+// terminate the Node.js process with a non-zero exit code.
+process.on('unhandledRejection', err => {
+  throw err;
+});
+
+// Ensure environment variables are read.
+require('../config/env');
 
 const jest = require('jest');
 const argv = process.argv.slice(2);
 
-// Watch unless on CI
-if (!process.env.CI) {
+// Watch unless on CI or in coverage mode
+if (!process.env.CI && argv.indexOf('--coverage') < 0) {
   argv.push('--watch');
 }
 
 jest.run(argv);
-
