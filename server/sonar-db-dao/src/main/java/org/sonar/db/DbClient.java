@@ -21,6 +21,7 @@ package org.sonar.db;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
+import org.sonar.DBSessions;
 import org.sonar.db.ce.CeActivityDao;
 import org.sonar.db.ce.CeQueueDao;
 import org.sonar.db.ce.CeScannerContextDao;
@@ -72,6 +73,7 @@ public class DbClient {
 
   private final Database database;
   private final MyBatis myBatis;
+  private final DBSessions DBSessions;
   private final SchemaMigrationDao schemaMigrationDao;
   private final AuthorizationDao authorizationDao;
   private final OrganizationDao organizationDao;
@@ -119,9 +121,10 @@ public class DbClient {
   private final WebhookDeliveryDao webhookDeliveryDao;
   private final DefaultQProfileDao defaultQProfileDao;
 
-  public DbClient(Database database, MyBatis myBatis, Dao... daos) {
+  public DbClient(Database database, MyBatis myBatis, DBSessions DBSessions, Dao... daos) {
     this.database = database;
     this.myBatis = myBatis;
+    this.DBSessions = DBSessions;
 
     Map<Class, Dao> map = new IdentityHashMap<>();
     for (Dao dao : daos) {
@@ -176,7 +179,7 @@ public class DbClient {
   }
 
   public DbSession openSession(boolean batch) {
-    return myBatis.openSession(batch);
+    return DBSessions.openSession(batch);
   }
 
   public Database getDatabase() {

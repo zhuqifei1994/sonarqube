@@ -19,8 +19,27 @@
  */
 package org.sonar.db;
 
-import org.apache.ibatis.session.SqlSession;
+import org.sonar.DBSessions;
 
-public interface DbSession extends SqlSession {
-  SqlSession getSqlSession();
+public final class TestDBSessions implements DBSessions {
+  private final MyBatis myBatis;
+
+  public TestDBSessions(MyBatis myBatis) {
+    this.myBatis = myBatis;
+  }
+
+  @Override
+  public DbSession openSession(boolean batch) {
+    return myBatis.openSession(false);
+  }
+
+  @Override
+  public void enableCaching() {
+    // ignored
+  }
+
+  @Override
+  public void disableCaching() {
+    // ignored
+  }
 }

@@ -76,6 +76,7 @@ public class RealmAuthenticationTest {
   public static final Orchestrator orchestrator = Orchestrator.builderEnv()
     .addPlugin(pluginArtifact("security-plugin"))
     .setServerProperty("sonar.security.realm", "FakeRealm")
+//    .setServerProperty("sonar.web.javaAdditionalOpts", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005")
     .build();
 
   @Rule
