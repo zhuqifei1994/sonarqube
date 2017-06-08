@@ -29,6 +29,7 @@ import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryListener;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.HazelcastInstanceNotActiveException;
 import com.hazelcast.core.IAtomicReference;
 import com.hazelcast.core.ILock;
 import com.hazelcast.core.MapEvent;
@@ -145,20 +146,25 @@ public class HazelcastCluster implements AutoCloseable {
   @Override
   public void close() {
     if (hzInstance != null) {
-      // Removing listeners
-      operationalProcesses.removeEntryListener(operationalProcessListenerUUID);
-      hzInstance.getClientService().removeClientListener(clientListenerUUID);
+      try {
+        // Removing listeners
+        operationalProcesses.removeEntryListener(operationalProcessListenerUUID);
+        hzInstance.getClientService().removeClientListener(clientListenerUUID);
 
-      // Removing the operationalProcess from the replicated map
-      operationalProcesses.keySet().forEach(
-        clusterNodeProcess -> {
-          if (clusterNodeProcess.getNodeUuid().equals(getLocalUUID())) {
-            operationalProcesses.remove(clusterNodeProcess);
-          }
-        });
+        // Removing the operationalProcess from the replicated map
+        operationalProcesses.keySet().forEach(
+          clusterNodeProcess -> {
+            if (clusterNodeProcess.getNodeUuid().equals(getLocalUUID())) {
+              operationalProcesses.remove(clusterNodeProcess);
+            }
+          });
 
-      // Shutdown Hazelcast properly
-      hzInstance.shutdown();
+        // Shutdown Hazelcast properly
+        hzInstance.shutdown();
+      } catch (HazelcastInstanceNotActiveException ex) {
+        // Hazelcast has been shutdown by Shutdown hook
+        // Just ignore the exception here
+      }
     }
   }
 
