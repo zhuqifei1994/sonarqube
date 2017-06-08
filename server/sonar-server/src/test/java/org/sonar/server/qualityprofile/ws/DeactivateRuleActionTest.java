@@ -28,7 +28,7 @@ import org.mockito.ArgumentCaptor;
 import org.sonar.api.rule.RuleKey;
 import org.sonar.api.server.ws.WebService;
 import org.sonar.db.DbClient;
-import org.sonar.db.DbSession;
+import org.sonar.db.DbSessionImpl;
 import org.sonar.db.DbTester;
 import org.sonar.db.organization.OrganizationDto;
 import org.sonar.db.permission.OrganizationPermission;
@@ -143,7 +143,7 @@ public class DeactivateRuleActionTest {
     assertThat(response.getStatus()).isEqualTo(HttpURLConnection.HTTP_NO_CONTENT);
     ArgumentCaptor<RuleKey> ruleKeyCaptor = ArgumentCaptor.forClass(RuleKey.class);
     ArgumentCaptor<QProfileDto> qProfileDtoCaptor = ArgumentCaptor.forClass(QProfileDto.class);
-    verify(ruleActivator).deactivateAndUpdateIndex(any(DbSession.class), qProfileDtoCaptor.capture(), ruleKeyCaptor.capture());
+    verify(ruleActivator).deactivateAndUpdateIndex(any(DbSessionImpl.class), qProfileDtoCaptor.capture(), ruleKeyCaptor.capture());
     assertThat(ruleKeyCaptor.getValue()).isEqualTo(ruleKey);
     assertThat(qProfileDtoCaptor.getValue().getKee()).isEqualTo(qualityProfile.getKee());
   }
@@ -164,7 +164,7 @@ public class DeactivateRuleActionTest {
     assertThat(response.getStatus()).isEqualTo(HttpURLConnection.HTTP_NO_CONTENT);
     ArgumentCaptor<RuleKey> captor = ArgumentCaptor.forClass(RuleKey.class);
     ArgumentCaptor<QProfileDto> qProfileDtoCaptor = ArgumentCaptor.forClass(QProfileDto.class);
-    verify(ruleActivator).deactivateAndUpdateIndex(any(DbSession.class), qProfileDtoCaptor.capture(), captor.capture());
+    verify(ruleActivator).deactivateAndUpdateIndex(any(DbSessionImpl.class), qProfileDtoCaptor.capture(), captor.capture());
     assertThat(captor.getValue()).isEqualTo(ruleKey);
     assertThat(qProfileDtoCaptor.getValue().getKee()).isEqualTo(qualityProfile.getKee());
   }

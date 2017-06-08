@@ -29,7 +29,7 @@ import org.sonar.api.rule.RuleKey;
 import org.sonar.api.rule.Severity;
 import org.sonar.api.server.ws.WebService;
 import org.sonar.db.DbClient;
-import org.sonar.db.DbSession;
+import org.sonar.db.DbSessionImpl;
 import org.sonar.db.DbTester;
 import org.sonar.db.organization.OrganizationDto;
 import org.sonar.db.permission.OrganizationPermission;
@@ -101,7 +101,7 @@ public class ActivateRuleActionTest {
       .setParam(PARAM_PROFILE, randomAlphanumeric(UUID_SIZE));
 
     expectedException.expect(UnauthorizedException.class);
-    
+
     request.execute();
   }
 
@@ -152,7 +152,7 @@ public class ActivateRuleActionTest {
 
     assertThat(response.getStatus()).isEqualTo(HttpURLConnection.HTTP_NO_CONTENT);
     ArgumentCaptor<RuleActivation> captor = ArgumentCaptor.forClass(RuleActivation.class);
-    verify(ruleActivator).activate(any(DbSession.class), captor.capture(), any(QProfileDto.class));
+    verify(ruleActivator).activate(any(DbSessionImpl.class), captor.capture(), any(QProfileDto.class));
     RuleActivation value = captor.getValue();
     assertThat(value.getRuleKey()).isEqualTo(ruleKey);
     assertThat(value.getSeverity()).isEqualTo(Severity.BLOCKER);
@@ -176,7 +176,7 @@ public class ActivateRuleActionTest {
 
     assertThat(response.getStatus()).isEqualTo(HttpURLConnection.HTTP_NO_CONTENT);
     ArgumentCaptor<RuleActivation> captor = ArgumentCaptor.forClass(RuleActivation.class);
-    verify(ruleActivator).activate(any(DbSession.class), captor.capture(), any(QProfileDto.class));
+    verify(ruleActivator).activate(any(DbSessionImpl.class), captor.capture(), any(QProfileDto.class));
     assertThat(captor.getValue().getRuleKey()).isEqualTo(ruleKey);
     assertThat(captor.getValue().getSeverity()).isEqualTo(Severity.BLOCKER);
     assertThat(captor.getValue().isReset()).isFalse();
