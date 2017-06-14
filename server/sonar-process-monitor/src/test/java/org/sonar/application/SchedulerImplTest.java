@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.DisableOnDebug;
@@ -54,10 +53,10 @@ import static org.sonar.process.ProcessId.WEB_SERVER;
 
 public class SchedulerImplTest {
 
-  private static final JavaCommand ES_COMMAND = new JavaCommand(ELASTICSEARCH);
-  private static final JavaCommand WEB_LEADER_COMMAND = new JavaCommand(WEB_SERVER);
-  private static final JavaCommand WEB_FOLLOWER_COMMAND = new JavaCommand(WEB_SERVER);
-  private static final JavaCommand CE_COMMAND = new JavaCommand(COMPUTE_ENGINE);
+  private final JavaCommand esCommand = new JavaCommand(ELASTICSEARCH);
+  private final JavaCommand webLeaderCommand = new JavaCommand(WEB_SERVER);
+  private final JavaCommand webFollowerCommand = new JavaCommand(WEB_SERVER);
+  private final JavaCommand ceCommand = new JavaCommand(COMPUTE_ENGINE);
 
   @Rule
   public TestRule safeguardTimeout = new DisableOnDebug(Timeout.seconds(60));
@@ -93,7 +92,7 @@ public class SchedulerImplTest {
     TestProcess web = processLauncher.waitForProcess(WEB_SERVER);
     assertThat(web.isAlive()).isTrue();
     assertThat(processLauncher.processes).hasSize(2);
-    assertThat(processLauncher.commands).containsExactly(ES_COMMAND, WEB_LEADER_COMMAND);
+    assertThat(processLauncher.commands).containsExactly(esCommand, webLeaderCommand);
 
     // web becomes operational -> CE is starting
     web.operational = true;
@@ -101,7 +100,7 @@ public class SchedulerImplTest {
     TestProcess ce = processLauncher.waitForProcess(COMPUTE_ENGINE);
     assertThat(ce.isAlive()).isTrue();
     assertThat(processLauncher.processes).hasSize(3);
-    assertThat(processLauncher.commands).containsExactly(ES_COMMAND, WEB_LEADER_COMMAND, CE_COMMAND);
+    assertThat(processLauncher.commands).containsExactly(esCommand, webLeaderCommand, ceCommand);
 
     // all processes are up
     processLauncher.processes.values().forEach(p -> assertThat(p.isAlive()).isTrue());
@@ -176,7 +175,6 @@ public class SchedulerImplTest {
   }
 
   @Test
-  @Ignore("false-positives on Travis CI")
   public void restart_reloads_java_commands_and_restarts_all_processes() throws Exception {
     Scheduler underTest = startAll();
 
@@ -190,7 +188,7 @@ public class SchedulerImplTest {
     }
 
     // restarting
-    verify(appReloader, timeout(60_000)).reload(settings);
+    verify(appReloader, timeout(30_000)).reload(settings);
     processLauncher.waitForProcessAlive(ELASTICSEARCH);
     processLauncher.waitForProcessAlive(COMPUTE_ENGINE);
     processLauncher.waitForProcessAlive(WEB_SERVER);
@@ -305,20 +303,20 @@ public class SchedulerImplTest {
     }
   }
 
-  private static class TestJavaCommandFactory implements JavaCommandFactory {
+  private class TestJavaCommandFactory implements JavaCommandFactory {
     @Override
     public JavaCommand createEsCommand() {
-      return ES_COMMAND;
+      return esCommand;
     }
 
     @Override
     public JavaCommand createWebCommand(boolean leader) {
-      return leader ? WEB_LEADER_COMMAND : WEB_FOLLOWER_COMMAND;
+      return leader ? webLeaderCommand : webFollowerCommand;
     }
 
     @Override
     public JavaCommand createCeCommand() {
-      return CE_COMMAND;
+      return ceCommand;
     }
   }
 
