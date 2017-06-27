@@ -182,7 +182,7 @@
       )
   </select>
 
-  <insert id="insert" parameterType="GroupPermission" keyColumn="id" useGeneratedKeys="true" keyProperty="id">
+  <insert id="insert" parameterType="GroupPermission" keyColumn="id" useGeneratedKeys="false" keyProperty="id">
     insert into group_roles (
     organization_uuid,
     group_id,

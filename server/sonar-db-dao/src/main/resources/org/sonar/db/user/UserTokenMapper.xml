@@ -10,7 +10,7 @@
     t.created_at as "createdAt"
   </sql>
 
-  <insert id="insert" parameterType="UserToken" keyColumn="id" useGeneratedKeys="true" keyProperty="id">
+  <insert id="insert" parameterType="UserToken" keyColumn="id" useGeneratedKeys="false" keyProperty="id">
     insert into user_tokens (
     login,
     name,

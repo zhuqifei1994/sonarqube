@@ -22,6 +22,7 @@ package org.sonar.db;
 import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
+import org.apache.ibatis.cursor.Cursor;
 import org.apache.ibatis.executor.BatchResult;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.ResultHandler;
@@ -89,6 +90,21 @@ public class DbSession implements SqlSession {
   @Override
   public <K, V> Map<K, V> selectMap(String statement, Object parameter, String mapKey, RowBounds rowBounds) {
     return session.selectMap(statement, parameter, mapKey, rowBounds);
+  }
+
+  @Override
+  public <T> Cursor<T> selectCursor(String statement) {
+    return session.selectCursor(statement);
+  }
+
+  @Override
+  public <T> Cursor<T> selectCursor(String statement, Object parameter) {
+    return session.selectCursor(statement, parameter);
+  }
+
+  @Override
+  public <T> Cursor<T> selectCursor(String statement, Object parameter, RowBounds rowBounds) {
+    return session.selectCursor(statement, parameter, rowBounds);
   }
 
   @Override
