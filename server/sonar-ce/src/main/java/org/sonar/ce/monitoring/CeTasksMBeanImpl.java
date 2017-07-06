@@ -73,6 +73,11 @@ public class CeTasksMBeanImpl implements CeTasksMBean, Startable, SystemInfoSect
   }
 
   @Override
+  public int getWorkerThreadCount() {
+    return ceConfiguration.getWorkerThreadCount();
+  }
+
+  @Override
   public int getWorkerCount() {
     return ceConfiguration.getWorkerCount();
   }
@@ -86,6 +91,7 @@ public class CeTasksMBeanImpl implements CeTasksMBean, Startable, SystemInfoSect
     builder.addAttributesBuilder().setKey("Processed With Error").setLongValue(getErrorCount()).build();
     builder.addAttributesBuilder().setKey("Processed With Success").setLongValue(getSuccessCount()).build();
     builder.addAttributesBuilder().setKey("Processing Time (ms)").setLongValue(getProcessingTime()).build();
+    builder.addAttributesBuilder().setKey("Worker Thread Count").setLongValue(getWorkerThreadCount()).build();
     builder.addAttributesBuilder().setKey("Worker Count").setLongValue(getWorkerCount()).build();
     return builder.build();
   }

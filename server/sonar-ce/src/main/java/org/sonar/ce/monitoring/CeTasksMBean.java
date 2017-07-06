@@ -49,6 +49,11 @@ public interface CeTasksMBean {
   long getProcessingTime();
 
   /**
+   * Configured number of worker threads.
+   */
+  int getWorkerThreadCount();
+
+  /**
    * Configured number of Workers.
    */
   int getWorkerCount();
