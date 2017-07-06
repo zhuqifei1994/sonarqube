@@ -32,6 +32,7 @@ import org.sonar.core.util.logs.Profiler;
 import org.sonar.db.ce.CeActivityDto;
 
 import static java.lang.String.format;
+import static org.sonar.ce.taskprocessor.CeWorker.Result.DISABLED;
 import static org.sonar.ce.taskprocessor.CeWorker.Result.NO_TASK;
 import static org.sonar.ce.taskprocessor.CeWorker.Result.TASK_PROCESSED;
 
@@ -44,14 +45,17 @@ public class CeWorkerImpl implements CeWorker {
   private final InternalCeQueue queue;
   private final CeLogging ceLogging;
   private final CeTaskProcessorRepository taskProcessorRepository;
+  private final EnabledCeWorkerController enabledCeWorkerController;
 
   public CeWorkerImpl(int ordinal, String uuid,
-    InternalCeQueue queue, CeLogging ceLogging, CeTaskProcessorRepository taskProcessorRepository) {
+    InternalCeQueue queue, CeLogging ceLogging, CeTaskProcessorRepository taskProcessorRepository,
+    EnabledCeWorkerController enabledCeWorkerController) {
     this.ordinal = ordinal;
     this.uuid = uuid;
     this.queue = queue;
     this.ceLogging = ceLogging;
     this.taskProcessorRepository = taskProcessorRepository;
+    this.enabledCeWorkerController = enabledCeWorkerController;
   }
 
   @Override
@@ -60,6 +64,9 @@ public class CeWorkerImpl implements CeWorker {
   }
 
   private Result findAndProcessTask() {
+    if (!enabledCeWorkerController.isEnabled(this)) {
+      return DISABLED;
+    }
     Optional<CeTask> ceTask = tryAndFindTaskToExecute();
     if (!ceTask.isPresent()) {
       return NO_TASK;

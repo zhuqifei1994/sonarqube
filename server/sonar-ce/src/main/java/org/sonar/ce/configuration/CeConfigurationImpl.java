@@ -19,6 +19,7 @@
  */
 package org.sonar.ce.configuration;
 
+import javax.annotation.CheckForNull;
 import org.picocontainer.Startable;
 import org.sonar.api.utils.MessageException;
 import org.sonar.api.utils.log.Logger;
@@ -45,21 +46,29 @@ public class CeConfigurationImpl implements CeConfiguration, Startable {
   // 10 minutes
   private static final long CANCEL_WORN_OUTS_DELAY = 10;
 
+  @CheckForNull
+  private final WorkerCountProvider workerCountProvider;
   private final int workerThreadCount;
-  private final int workerCount;
+  private int workerCount;
 
   public CeConfigurationImpl() {
+    this.workerCountProvider = null;
     this.workerThreadCount = DEFAULT_WORKER_THREAD_COUNT;
     this.workerCount = DEFAULT_WORKER_COUNT;
   }
 
   public CeConfigurationImpl(WorkerCountProvider workerCountProvider) {
+    this.workerCountProvider = workerCountProvider;
+    this.workerThreadCount = MAX_WORKER_THREAD_COUNT;
+    this.workerCount = readWorkerCount(workerCountProvider);
+  }
+
+  private static int readWorkerCount(WorkerCountProvider workerCountProvider) {
     int value = workerCountProvider.get();
     if (value < DEFAULT_WORKER_COUNT || value > MAX_WORKER_THREAD_COUNT) {
       throw parsingError(value);
     }
-    this.workerThreadCount = MAX_WORKER_THREAD_COUNT;
-    this.workerCount = value;
+    return value;
   }
 
   private static MessageException parsingError(int value) {
@@ -78,6 +87,13 @@ public class CeConfigurationImpl implements CeConfiguration, Startable {
   @Override
   public void stop() {
     // nothing to do
+  }
+
+  @Override
+  public void refresh() {
+    if (workerCountProvider != null) {
+      this.workerCount = readWorkerCount(workerCountProvider);
+    }
   }
 
   @Override

@@ -22,6 +22,11 @@ package org.sonar.ce.configuration;
 public interface CeConfiguration {
 
   /**
+   * Requests {@link CeConfiguration} to refresh its state, if it has any.
+   */
+  void refresh();
+
+  /**
    * The number of worker threads, integer strictly greater than 0.
    */
   int getWorkerThreadCount();

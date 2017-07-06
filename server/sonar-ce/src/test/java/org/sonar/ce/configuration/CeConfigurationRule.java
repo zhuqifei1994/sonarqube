@@ -34,6 +34,11 @@ public class CeConfigurationRule extends ExternalResource implements CeConfigura
   private long cancelWornOutsDelay = 10L;
 
   @Override
+  public void refresh() {
+    throw new UnsupportedOperationException("Refresh is not supported");
+  }
+
+  @Override
   public int getWorkerThreadCount() {
     return workerThreadCount;
   }

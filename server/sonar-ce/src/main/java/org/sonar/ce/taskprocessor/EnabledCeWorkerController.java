@@ -19,16 +19,18 @@
  */
 package org.sonar.ce.taskprocessor;
 
-import org.sonar.core.platform.Module;
+/**
+ * This class is responsible of knowing/deciding which {@link CeWorker} is enabled and should actually try and find a
+ * task to process.
+ */
+public interface EnabledCeWorkerController {
+  /**
+   * Requests the {@link EnabledCeWorkerController} to refresh its state, if it has any.
+   */
+  void refresh();
 
-public class CeTaskProcessorModule extends Module {
-  @Override
-  protected void configureModule() {
-    add(
-      CeTaskProcessorRepositoryImpl.class,
-      CeWorkerFactoryImpl.class,
-      EnabledCeWorkerControllerImpl.class,
-      CeProcessingSchedulerExecutorServiceImpl.class,
-      CeProcessingSchedulerImpl.class);
-  }
+  /**
+   * Returns {@code true} if the specified {@link CeWorker} is enabled
+   */
+  boolean isEnabled(CeWorker ceWorker);
 }
