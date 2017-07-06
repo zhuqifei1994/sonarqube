@@ -22,7 +22,7 @@ import React from 'react';
 import { debounce, findLast, maxBy, minBy, sortBy } from 'lodash';
 import ProjectActivityGraphsHeader from './ProjectActivityGraphsHeader';
 import GraphsZoom from './GraphsZoom';
-import StaticGraphs from './StaticGraphs';
+import GraphsHistory from './GraphsHistory';
 import {
   datesQueryChanged,
   generateSeries,
@@ -143,7 +143,7 @@ export default class ProjectActivityGraphs extends React.PureComponent {
           selectedMetrics={this.props.query.customMetrics}
           updateQuery={this.props.updateQuery}
         />
-        <StaticGraphs
+        <GraphsHistory
           analyses={this.props.analyses}
           eventFilter={query.category}
           graph={query.graph}
