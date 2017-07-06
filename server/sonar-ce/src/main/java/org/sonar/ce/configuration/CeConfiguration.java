@@ -22,7 +22,12 @@ package org.sonar.ce.configuration;
 public interface CeConfiguration {
 
   /**
-   * The number of workers to process CeTasks concurrently.
+   * The number of worker threads, integer strictly greater than 0.
+   */
+  int getWorkerThreadCount();
+
+  /**
+   * The number of workers to process CeTasks concurrently, integer strictly greater than 0..
    */
   int getWorkerCount();
 
