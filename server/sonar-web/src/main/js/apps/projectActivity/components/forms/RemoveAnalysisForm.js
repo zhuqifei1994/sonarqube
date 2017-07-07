@@ -49,8 +49,9 @@ export default class RemoveAnalysisForm extends React.PureComponent {
     this.mounted = false;
   }
 
-  openForm = (evt: Event) => {
-    evt.preventDefault();
+  openForm = (e: Event) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (this.mounted) {
       this.setState({ open: true });
     }
@@ -74,7 +75,7 @@ export default class RemoveAnalysisForm extends React.PureComponent {
     }
   };
 
-  handleSubmit = (e: Object) => {
+  handleSubmit = (e: Event) => {
     e.preventDefault();
     this.setState({ processing: true });
     this.props
