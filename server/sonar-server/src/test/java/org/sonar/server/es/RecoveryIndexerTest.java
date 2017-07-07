@@ -43,6 +43,7 @@ import org.sonar.db.DbTester;
 import org.sonar.db.es.EsQueueDto;
 import org.sonar.db.rule.RuleDto;
 import org.sonar.db.user.UserDto;
+import org.sonar.server.permission.index.PermissionIndexer;
 import org.sonar.server.qualityprofile.index.ActiveRuleIndexer;
 import org.sonar.server.rule.index.RuleIndexDefinition;
 import org.sonar.server.rule.index.RuleIndexer;
@@ -77,6 +78,7 @@ public class RecoveryIndexerTest {
   private UserIndexer mockedUserIndexer = mock(UserIndexer.class);
   private RuleIndexer mockedRuleIndexer = mock(RuleIndexer.class);
   private ActiveRuleIndexer mockedActiveRuleIndexer = mock(ActiveRuleIndexer.class);
+  private PermissionIndexer mockedPermissionIndexer = mock(PermissionIndexer.class);
   private RecoveryIndexer underTest;
 
   @After
@@ -104,7 +106,7 @@ public class RecoveryIndexerTest {
     Settings settings = new MapSettings()
       .setProperty("sonar.search.recovery.initialDelayInMs", "0")
       .setProperty("sonar.search.recovery.delayInMs", "1");
-    underTest = spy(new RecoveryIndexer(system2, settings, db.getDbClient(), mockedUserIndexer, mockedRuleIndexer, mockedActiveRuleIndexer));
+    underTest = spy(new RecoveryIndexer(system2, settings, db.getDbClient(), mockedUserIndexer, mockedRuleIndexer, mockedActiveRuleIndexer, mockedPermissionIndexer));
     AtomicInteger calls = new AtomicInteger(0);
     doAnswer(invocation -> {
       calls.incrementAndGet();
@@ -433,7 +435,7 @@ public class RecoveryIndexerTest {
   }
 
   private RecoveryIndexer newRecoveryIndexer(UserIndexer userIndexer, RuleIndexer ruleIndexer, Settings settings) {
-    return new RecoveryIndexer(system2, settings, db.getDbClient(), userIndexer, ruleIndexer, mockedActiveRuleIndexer);
+    return new RecoveryIndexer(system2, settings, db.getDbClient(), userIndexer, ruleIndexer, mockedActiveRuleIndexer, mockedPermissionIndexer);
   }
 
   private EsQueueDto createUnindexedUser() {
