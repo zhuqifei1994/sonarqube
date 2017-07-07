@@ -135,12 +135,12 @@ class ProjectActivityAppContainer extends React.PureComponent {
       );
 
   deleteAnalysis = (analysis: string): Promise<*> =>
-    api
-      .deleteAnalysis(analysis)
-      .then(
-        () => this.mounted && this.setState(actions.deleteAnalysis(analysis)),
-        throwGlobalError
-      );
+    api.deleteAnalysis(analysis).then(() => {
+      if (this.mounted) {
+        this.updateGraphData(this.state.query.graph, this.state.query.customMetrics);
+        this.setState(actions.deleteAnalysis(analysis));
+      }
+    }, throwGlobalError);
 
   deleteEvent = (analysis: string, event: string): Promise<*> =>
     api

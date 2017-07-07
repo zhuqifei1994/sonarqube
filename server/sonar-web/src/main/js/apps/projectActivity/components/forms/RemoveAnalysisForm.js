@@ -105,7 +105,9 @@ export default class RemoveAnalysisForm extends React.PureComponent {
             {this.state.processing
               ? <i className="spinner" />
               : <div>
-                  <button type="submit" className="button-red">{translate('delete')}</button>
+                  <button type="submit" className="button-red" autoFocus={true}>
+                    {translate('delete')}
+                  </button>
                   <button type="reset" className="button-link" onClick={this.closeForm}>
                     {translate('cancel')}
                   </button>
