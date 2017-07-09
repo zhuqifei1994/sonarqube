@@ -25,6 +25,8 @@ import { AutoSizer } from 'react-virtualized';
 import { generateSeries, GRAPHS_METRICS_DISPLAYED } from '../../projectActivity/utils';
 import { getGraph } from '../../../helpers/storage';
 import AdvancedTimeline from '../../../components/charts/AdvancedTimeline';
+import PreviewGraphTooltips from './PreviewGraphTooltips';
+import { formatMeasure, getShortType } from '../../../helpers/measures';
 import type { Serie } from '../../../components/charts/AdvancedTimeline';
 import type { History, Metric } from '../types';
 
@@ -37,7 +39,10 @@ type Props = {
 type State = {
   graph: string,
   metricsType: string,
-  series: Array<Serie>
+  selectedDate?: ?Date,
+  series: Array<Serie>,
+  tooltipIdx: ?number,
+  tooltipXPos: ?number
 };
 
 export default class PreviewGraph extends React.PureComponent {
@@ -51,7 +56,10 @@ export default class PreviewGraph extends React.PureComponent {
     this.state = {
       graph,
       metricsType,
-      series: this.getSeries(props.history, graph, metricsType)
+      selectedDate: null,
+      series: this.getSeries(props.history, graph, metricsType),
+      tooltipIdx: null,
+      tooltipXPos: null
     };
   }
 
@@ -67,8 +75,11 @@ export default class PreviewGraph extends React.PureComponent {
     }
   }
 
-  getDisplayedMetrics = (graph: string) => {
-    const metrics = GRAPHS_METRICS_DISPLAYED[graph];
+  formatValue = (tick: number | string) =>
+    formatMeasure(tick, getShortType(this.state.metricsType));
+
+  getDisplayedMetrics = (graph: string): Array<string> => {
+    const metrics: Array<string> = GRAPHS_METRICS_DISPLAYED[graph];
     if (!metrics || metrics.length <= 0) {
       return GRAPHS_METRICS_DISPLAYED['overview'];
     }
@@ -89,7 +100,11 @@ export default class PreviewGraph extends React.PureComponent {
     return metric ? metric.type : 'INT';
   };
 
+  updateTooltip = (selectedDate: ?Date, tooltipXPos: ?number, tooltipIdx: ?number) =>
+    this.setState({ selectedDate, tooltipXPos, tooltipIdx });
+
   render() {
+    const { graph, selectedDate, series, tooltipIdx, tooltipXPos } = this.state;
     return (
       <div className="big-spacer-bottom spacer-top">
         <Link
@@ -97,19 +112,34 @@ export default class PreviewGraph extends React.PureComponent {
           to={{ pathname: '/project/activity', query: { id: this.props.project } }}>
           <AutoSizer disableHeight={true}>
             {({ width }) => (
-              <AdvancedTimeline
-                endDate={null}
-                startDate={null}
-                height={80}
-                width={width}
-                hideGrid={true}
-                hideXAxis={true}
-                interpolate="linear"
-                metricType={this.state.metricsType}
-                padding={[4, 0, 4, 0]}
-                series={this.state.series}
-                showAreas={['coverage', 'duplications'].includes(this.state.graph)}
-              />
+              <div>
+                <AdvancedTimeline
+                  endDate={null}
+                  startDate={null}
+                  height={80}
+                  width={width}
+                  hideGrid={true}
+                  hideXAxis={true}
+                  interpolate="linear"
+                  metricType={this.state.metricsType}
+                  padding={[4, 0, 4, 0]}
+                  series={series}
+                  showAreas={['coverage', 'duplications'].includes(graph)}
+                  updateTooltip={this.updateTooltip}
+                />
+                {selectedDate != null &&
+                  tooltipXPos != null &&
+                  tooltipIdx != null &&
+                  <PreviewGraphTooltips
+                    formatValue={this.formatValue}
+                    graph={graph}
+                    graphWidth={width}
+                    selectedDate={selectedDate}
+                    series={series}
+                    tooltipIdx={tooltipIdx}
+                    tooltipPos={tooltipXPos}
+                  />}
+              </div>
             )}
           </AutoSizer>
         </Link>

@@ -368,6 +368,20 @@
   border: none;
 }
 
+.overview-analysis-graph-tooltip {
+  padding: 8px;
+  pointer-events: none;
+}
+
+.overview-analysis-graph-tooltip-line {
+  height: 20px;
+  padding-bottom: 4px;
+}
+
+.overview-analysis-graph-tooltip-title, .overview-analysis-graph-tooltip-value {
+  font-weight: bold;
+}
+
 .overview-analysis-event {}
 
 .overview-analysis-event.badge {
